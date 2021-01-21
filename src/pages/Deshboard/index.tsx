@@ -1,55 +1,66 @@
-import React from 'react';
+import React, { useState, FormEvent } from 'react';
 import { FiChevronsRight } from 'react-icons/fi';
+import api from '../../services/api';
 
 import { Title, Form, Repositories } from './styles';
 import logo from '../../image/logo.svg';
 
-const Dahboard: React.FC = () => (
-  <>
-    <img src={logo} alt="" />
-    <Title>
-      Explore repositórios no GitHub
-    </Title>
-    <Form>
-      <input placeholder="Digite o nome do repositório" />
-      <button type="submit">pesquisar</button>
-    </Form>
-    <Repositories>
-      <a href="teste">
-        <img
-          src="https://avatars2.githubusercontent.com/u/42882103?s=460&u=719625a4340f30ad2790d4a0714811a629d1b0d2&v=4"
-          alt="thayron feitosa"
+interface Repository {
+    full_name: string;
+    description: string;
+    owner: {
+        login: string;
+        avatar_url: string;
+
+    }
+
+}
+
+const Dahboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+
+  async function handleAddRepository(event:FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    const response = await api.get<Repository>(`repos/${newRepo}`);
+
+    const repository = response.data;
+
+    setRepositories([...repositories, repository]);
+    setNewRepo('');
+  }
+
+  return (
+    <>
+      <img src={logo} alt="" />
+      <Title>
+        Explore repositórios no GitHub
+      </Title>
+      <Form onSubmit={handleAddRepository}>
+        <input
+          value={newRepo}
+          onChange={(e) => setNewRepo(e.target.value)}
+          placeholder="Digite o nome do repositório"
         />
-        <div>
-          <strong>repositório qualquer</strong>
-          <p>Descrição do repositório</p>
-        </div>
-        <FiChevronsRight size={20} />
-      </a>
-      <a href="teste">
-        <img
-          src="https://avatars2.githubusercontent.com/u/42882103?s=460&u=719625a4340f30ad2790d4a0714811a629d1b0d2&v=4"
-          alt="thayron feitosa"
-        />
-        <div>
-          <strong>repositório qualquer</strong>
-          <p>Descrição do repositório</p>
-        </div>
-        <FiChevronsRight size={20} />
-      </a>
-      <a href="teste">
-        <img
-          src="https://avatars2.githubusercontent.com/u/42882103?s=460&u=719625a4340f30ad2790d4a0714811a629d1b0d2&v=4"
-          alt="thayron feitosa"
-        />
-        <div>
-          <strong>repositório qualquer</strong>
-          <p>Descrição do repositório</p>
-        </div>
-        <FiChevronsRight size={20} />
-      </a>
-    </Repositories>
-  </>
-);
+        <button type="submit">pesquisar</button>
+      </Form>
+      <Repositories>
+        {repositories.map((repository) => (
+          <a key={repository.full_name} href="teste">
+            <img
+              src={repository.owner.avatar_url}
+              alt={repository.owner.login}
+            />
+            <div>
+              <strong>{repository.full_name}</strong>
+              <p>{repository.description}</p>
+            </div>
+            <FiChevronsRight size={20} />
+          </a>
+        ))}
+      </Repositories>
+    </>
+  );
+};
 
 export default Dahboard;
